@@ -2,35 +2,42 @@ package tictactoe;
 import java.util.Arrays;
 import java.util.Scanner;
 public class Main {
-    static char[] board;
     static Scanner scanner;
 
     public static void main(String[] args) {
         // write your code here
         scanner = new Scanner(System.in);
-        System.out.print("Enter the cells: ");
-        String symbol = scanner.nextLine();
-        board = symbol.toCharArray();
-        print();
-        move();
-        print();
+        Dice[] dices = new Dice[9];
+        Arrays.fill(dices, Dice.FREE);
+        Dice playing = Dice.FREE;
+        Status gameStatus;
 
+        do {
+            playing = playing.opposite();
+            print(dices);
+            move(dices, playing);
+            gameStatus = check(dices, playing);
+        } while (gameStatus == Status.CONTINUE);
 
+        print(dices);
 
-//        String result = checkWinner();
-//        System.out.println(result);
+        if (gameStatus == Status.WIN) {
+            System.out.println(playing + " wins");
+        } else {
+            System.out.println("Draw");
+        }
     }
 
-    static void print(){
+    static void print(Dice[] dices){
         System.out.println("---------");
-        System.out.println("| " + board[0] + " " + board[1] + " " + board[2] + " |");
-        System.out.println("| " + board[3] + " " + board[4] + " " + board[5] + " |");
-        System.out.println("| " + board[6] + " " + board[7] + " " + board[8] + " |");
+        System.out.println("| " + dices[0] + " " + dices[1] + " " + dices[2] + " |");
+        System.out.println("| " + dices[3] + " " + dices[4] + " " + dices[5] + " |");
+        System.out.println("| " + dices[6] + " " + dices[7] + " " + dices[8] + " |");
         System.out.println("---------");
 
     }
 
-    private static void move() {
+    private static void move(Dice[] dices, Dice dice) {
         do {
             System.out.println("Enter the coordinates: ");
             String line = scanner.nextLine();
@@ -49,130 +56,91 @@ public class Main {
                 continue;
             }
             int index = 8 + column - 3 * row;
-            if (board[index] == '_') {
-                board[index] = 'X';
+            if (dices[index] == Dice.FREE) {
+                dices[index] = dice;
                 break;
             } else {
                 System.out.println("This cell is occupied! Choose another one!");
             }
         } while (true);
     }
-
-
-
-
-
-    static String checkWinner() {
-        int count = 0;
-        int winX = 0;
-        int winO = 0;
-        String line = null;
-        boolean end = false;
-
-
-        line = board[0] + "" + board[1] + "" + board[2];
-        if (line.equals("XXX")) {
-            winX++;
+    private static Status check(Dice[] dices, Dice dice) {
+        if (win(dices, dice)) {
+            return Status.WIN;
+        } else if (!gotEmpty(dices)) {
+            return Status.DRAW;
         }
-        else if (line.equals("OOO")) {
-            winO++;
-        }
-
-        line = board[3] + "" + board[4] + "" + board[5];
-        if (line.equals("XXX")) {
-            winX++;
-        }
-        else if (line.equals("OOO")) {
-            winO++;
-        }
-
-        line = board[6] + "" + board[7] + "" + board[8];
-        if (line.equals("XXX")) {
-            winX++;
-        }
-        else if (line.equals("OOO")) {
-            winO++;
-        }
-
-        line = board[0] + "" + board[3] + "" + board[6];
-        if (line.equals("XXX")) {
-            winX++;
-        }
-        else if (line.equals("OOO")) {
-            winO++;
-        }
-
-        line = board[1] + "" + board[4] + "" + board[7];
-        if (line.equals("XXX")) {
-            winX++;
-        }
-        else if (line.equals("OOO")) {
-            winO++;
-        }
-
-        line = board[2] + "" + board[5] + "" + board[8];
-        if (line.equals("XXX")) {
-            winX++;
-        }
-        else if (line.equals("OOO")) {
-            winO++;
-        }
-
-
-        line = board[0] + "" + board[4] + "" + board[8];
-        if (line.equals("XXX")) {
-            winX++;
-        }
-        else if (line.equals("OOO")) {
-            winO++;
-        }
-
-
-        line = board[2] + "" + board[4] + "" + board[6];
-        if (line.equals("XXX")) {
-            winX++;
-        }
-        else if (line.equals("OOO")) {
-            winO++;
-        }
-
-        if (winX == 1 && winO == 0) {
-            end = true;
-            return "X wins";
-        } else if (winO == 1 && winX == 0) {
-            end = true;
-            return "O wins";
-        } else if (((winX > 1) || (winO > 1)) || (winX == 1) && (winO == 1)) {
-            end = true;
-            return "Impossible";
-        }
-
-
-        int countX = 0;
-        int countO = 0;
-        for (int i = 0; i < 9; i++) {
-            if (board[i] == 'X') {
-                countX++;
-
-            } else if (board[i] == 'O') {
-                countO++;
-
+        return Status.CONTINUE;
+    }
+    public static boolean gotEmpty(Dice[] dices) {
+        for (Dice stone : dices) {
+            if (stone == Dice.FREE) {
+                return true;
             }
         }
-        if ((countX + 2 <= countO) || (countO + 2 <= countX) ) {
-            end = true;
-            return "Impossible";
-        }
-
-
-        for (int a = 0; a < 9; a++) {
-
-            if ((!end) && Arrays.toString(board).contains("_")) {
-                return "Game not finished";
-            } else if (a == 8) return "Draw";
-        }
-
-
-        return null;
+        return false;
     }
+
+    public static boolean win(Dice[] dices, Dice dice) {
+        boolean horizontal = (dice == dices[0] && dice == dices[1] && dice == dices[2])
+                ||
+                (dice == dices[3] && dice == dices[4] && dice == dices[5])
+                ||
+                (dice == dices[6] && dice == dices[7] && dice == dices[8]);
+        boolean vertical = (dice == dices[0] && dice == dices[3] && dice == dices[6])
+                ||
+                (dice == dices[1] && dice == dices[4] && dice == dices[7])
+                ||
+                (dice == dices[2] && dice == dices[5] && dice == dices[8]);
+        boolean diagonal = (dice == dices[0] && dice == dices[4] && dice == dices[8])
+                ||
+                (dice == dices[2] && dice == dices[4] && dice == dices[6]);
+        return horizontal || vertical || diagonal;
+    }
+
+
+    enum Dice {
+        X {
+            @Override
+            public String toString() {
+                return "X";
+            }
+
+            @Override
+            public Dice opposite() {
+                return O;
+            }
+        },
+        O {
+            @Override
+            public String toString() {
+                return "O";
+            }
+
+            @Override
+            public Dice opposite() {
+                return X;
+            }
+        },
+        FREE {
+            @Override
+            public String toString() {
+                return " ";
+            }
+
+            @Override
+            public Dice opposite() {
+                return X;
+            }
+        };
+
+        public abstract Dice opposite();
+
+    }
+    enum Status {
+        WIN,
+        DRAW,
+        CONTINUE
+    }
+
 }
